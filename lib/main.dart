@@ -15,8 +15,41 @@ class MiRutinaApp extends StatelessWidget {
       title: 'Mi Rutina',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        brightness: Brightness.dark,
         scaffoldBackgroundColor: AppColors.background,
-        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.accent,
+          brightness: Brightness.dark,
+          primary: AppColors.accent,
+          secondary: AppColors.secondaryButton,
+          surface: AppColors.card,
+        ),
+        cardColor: AppColors.card,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: AppColors.background,
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.accent,
+            foregroundColor: Colors.white,
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.secondaryButton,
+            side: const BorderSide(color: AppColors.secondaryButton, width: 1.5),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: AppColors.card,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+        ),
         fontFamily: 'Roboto', // Cambia a 'Inter' o 'Montserrat' si las agregas como fuentes personalizadas
         useMaterial3: true,
       ),

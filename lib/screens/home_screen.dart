@@ -3,8 +3,10 @@ import '../theme/app_colors.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/secondary_button.dart';
 import 'evaluation_screen.dart';
+import 'evaluation_result_screen.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
+import 'routines_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -30,11 +32,22 @@ class HomeScreen extends StatelessWidget {
                       const _HeroSection(),
                       const SizedBox(height: 32),
                       PrimaryButton(
-                        text: 'Comenzar Evaluación Inicial',
+                        text: 'Entrenamiento',
                         onPressed: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) => const EvaluationScreen(),
+                              builder: (_) => RoutinesScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      PrimaryButton(
+                        text: 'Nueva evaluación',
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => EvaluationScreen(),
                             ),
                           );
                         },
@@ -57,6 +70,17 @@ class HomeScreen extends StatelessWidget {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) => const RegisterScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      SecondaryButton(
+                        text: 'Ver mi última evaluación',
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const EvaluationResultScreen(),
                             ),
                           );
                         },
