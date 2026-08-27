@@ -20,7 +20,7 @@ class DatabaseHelper {
     final path = join(await getDatabasesPath(), 'mi_rutina.db');
     return await openDatabase(
       path,
-      version: 2,
+      version: 5,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE evaluaciones(
@@ -43,7 +43,8 @@ class DatabaseHelper {
         duracion TEXT,
         metodo TEXT,
         favorita INTEGER,
-        fechaCreacion TEXT
+        fechaCreacion TEXT,
+        usuarioId INTEGER
       )
     ''');
     await db.execute('''
@@ -63,20 +64,35 @@ class DatabaseHelper {
             nombre TEXT NOT NULL,
             correo TEXT NOT NULL UNIQUE,
             contrasena TEXT NOT NULL,
-            genero TEXT NOT NULL
+            genero TEXT NOT NULL,
+            pregunta_seguridad TEXT,
+            respuesta_seguridad TEXT
           )
         ''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 2) {
+        if (oldVersion < 3) {
           await db.execute('''
-            CREATE TABLE usuarios(
+            CREATE TABLE IF NOT EXISTS usuarios(
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               nombre TEXT NOT NULL,
               correo TEXT NOT NULL UNIQUE,
               contrasena TEXT NOT NULL,
               genero TEXT NOT NULL
             )
+          ''');
+        }
+        if (oldVersion < 4) {
+          await db.execute('''
+            ALTER TABLE rutinas ADD COLUMN usuarioId INTEGER
+          ''');
+        }
+        if (oldVersion < 5) {
+          await db.execute('''
+            ALTER TABLE usuarios ADD COLUMN pregunta_seguridad TEXT
+          ''');
+          await db.execute('''
+            ALTER TABLE usuarios ADD COLUMN respuesta_seguridad TEXT
           ''');
         }
       },
@@ -102,15 +118,48 @@ class DatabaseHelper {
     String nombre,
     String correo,
     String contrasena,
-    String genero,
-  ) async {
+    String genero, {
+    String? preguntaSeguridad,
+    String? respuestaSeguridad,
+  }) async {
     final db = await database;
     return await db.insert('usuarios', {
       'nombre': nombre,
       'correo': correo,
       'contrasena': contrasena,
       'genero': genero,
+      'pregunta_seguridad': preguntaSeguridad,
+      'respuesta_seguridad': respuestaSeguridad,
     });
+  }
+  Future<Map<String, dynamic>?> validarLogin(String correo, String contrasena) async {
+    final db = await database;
+    final resultados = await db.query(
+      'usuarios',
+      where: 'correo = ? AND contrasena = ?',
+      whereArgs: [correo, contrasena],
+    );
+    if (resultados.isEmpty) return null;
+    return resultados.first;
+  }
+  Future<Map<String, dynamic>?> obtenerUsuarioPorCorreo(String correo) async {
+    final db = await database;
+    final resultados = await db.query(
+      'usuarios',
+      where: 'correo = ?',
+      whereArgs: [correo],
+    );
+    if (resultados.isEmpty) return null;
+    return resultados.first;
+  }
+  Future<int> actualizarContrasena(int usuarioId, String nuevaContrasena) async {
+    final db = await database;
+    return await db.update(
+      'usuarios',
+      {'contrasena': nuevaContrasena},
+      where: 'id = ?',
+      whereArgs: [usuarioId],
+    );
   }
   Future<void> actualizarEjercicio(int id, Map<String, dynamic> ejercicio) async {
   final db = await database;
@@ -149,9 +198,14 @@ Future<List<Map<String, dynamic>>> obtenerEjercicios(int rutinaId) async {
     whereArgs: [rutinaId],
   );
 }
-  Future<List<Map<String, dynamic>>> obtenerRutinas() async {
+  Future<List<Map<String, dynamic>>> obtenerRutinas(int usuarioId) async {
   final db = await database;
-  return await db.query('rutinas', orderBy: 'fechaCreacion DESC');
+  return await db.query(
+    'rutinas',
+    where: 'usuarioId = ?',
+    whereArgs: [usuarioId],
+    orderBy: 'fechaCreacion DESC',
+  );
 }
 Future<int> actualizarRutina(int id, Rutina rutina) async {
   final db = await database;

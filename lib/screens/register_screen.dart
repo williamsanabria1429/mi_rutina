@@ -15,9 +15,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmarController = TextEditingController();
+  final _respuestaSeguridadController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
   String? _generoSeleccionado;
+  String? _preguntaSeguridadSeleccionada;
+
+  static const List<String> _preguntasSeguridad = [
+    '¿Cuál es el nombre de la mascota que más amaste?',
+    '¿Cuál es el nombre de tu mejor amigo de la infancia?',
+    '¿En qué ciudad naciste?',
+    '¿Cuál es el segundo nombre de tu madre?',
+    '¿Cuál es tu comida favorita?',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -85,6 +95,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     setState(() => _obscureConfirm = !_obscureConfirm);
                   },
                 ),
+              ),
+              const SizedBox(height: 16),
+              _buildPreguntaSeguridadSelector(),
+              const SizedBox(height: 16),
+              _buildTextField(
+                controller: _respuestaSeguridadController,
+                label: 'Respuesta de seguridad',
+                icon: Icons.shield_outlined,
               ),
               const SizedBox(height: 28),
               SizedBox(
@@ -197,13 +215,50 @@ Widget _buildTextField({
     );
   }
 
+  Widget _buildPreguntaSeguridadSelector() {
+    return DropdownButtonFormField<String>(
+      initialValue: _preguntaSeguridadSeleccionada,
+      dropdownColor: AppColors.card,
+      style: const TextStyle(color: AppColors.textDark),
+      icon: const Icon(Icons.arrow_drop_down, color: AppColors.textLight),
+      decoration: InputDecoration(
+        labelText: 'Pregunta de seguridad',
+        labelStyle: const TextStyle(color: AppColors.textLight),
+        prefixIcon: const Icon(Icons.help_outline, color: AppColors.textLight),
+        filled: true,
+        fillColor: AppColors.card,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+      ),
+      items: _preguntasSeguridad
+          .map((pregunta) => DropdownMenuItem(
+                value: pregunta,
+                child: Text(
+                  pregunta,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ))
+          .toList(),
+      onChanged: (valor) {
+        setState(() => _preguntaSeguridadSeleccionada = valor);
+      },
+    );
+  }
+
   Future<void> _crearCuenta() async {
     final nombre = _nombreController.text.trim();
     final correo = _emailController.text.trim();
     final contrasena = _passwordController.text;
     final confirmar = _confirmarController.text;
+    final respuestaSeguridad = _respuestaSeguridadController.text.trim();
 
-    if (nombre.isEmpty || correo.isEmpty || contrasena.isEmpty || confirmar.isEmpty) {
+    if (nombre.isEmpty ||
+        correo.isEmpty ||
+        contrasena.isEmpty ||
+        confirmar.isEmpty ||
+        respuestaSeguridad.isEmpty) {
       _mostrarMensaje('Completa todos los campos');
       return;
     }
@@ -218,11 +273,18 @@ Widget _buildTextField({
       return;
     }
 
+    if (_preguntaSeguridadSeleccionada == null) {
+      _mostrarMensaje('Selecciona una pregunta de seguridad');
+      return;
+    }
+
     await DatabaseHelper().insertarUsuario(
       nombre,
       correo,
       contrasena,
       _generoSeleccionado!,
+      preguntaSeguridad: _preguntaSeguridadSeleccionada,
+      respuestaSeguridad: respuestaSeguridad,
     );
 
     if (!mounted) return;

@@ -8,6 +8,7 @@ class AppColors {
   static const Color background = Color(0xFF0A0A0A);
   static const Color card = Color(0xFF222222);
   static const Color accent = Color(0xFFE42020);
+  static const Color accentDark = Color(0xFFB31217);
   static const Color secondaryButton = Color(0xFFD9D9D9);
 
   // Alias mantenidos por compatibilidad con el resto de la app.

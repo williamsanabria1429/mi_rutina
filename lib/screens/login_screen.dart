@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../db/database_helper.dart';
+import '../services/session_manager.dart';
+import 'home_screen.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -61,7 +65,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {
-                    // TODO: recuperar contraseña
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ForgotPasswordScreen(),
+                      ),
+                    );
                   },
                   child: const Text(
                     '¿Olvidaste tu contraseña?',
@@ -74,9 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: lógica de login
-                  },
+                  onPressed: _iniciarSesion,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accent,
                     shape: RoundedRectangleBorder(
@@ -117,6 +123,39 @@ class _LoginScreenState extends State<LoginScreen> {
           borderSide: BorderSide.none,
         ),
       ),
+    );
+  }
+
+  Future<void> _iniciarSesion() async {
+    final correo = _emailController.text.trim();
+    final contrasena = _passwordController.text;
+
+    if (correo.isEmpty || contrasena.isEmpty) {
+      _mostrarMensaje('Completa todos los campos');
+      return;
+    }
+
+    final usuario = await DatabaseHelper().validarLogin(correo, contrasena);
+
+    if (!mounted) return;
+
+    if (usuario == null) {
+      _mostrarMensaje('Correo o contraseña incorrectos');
+      return;
+    }
+
+    await SessionManager.guardarUsuarioId(usuario['id'] as int);
+
+    if (!mounted) return;
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+    );
+  }
+
+  void _mostrarMensaje(String mensaje) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(mensaje)),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/rutina.dart';
 import '../db/database_helper.dart';
+import '../services/session_manager.dart';
 
 class CreateRoutineScreen extends StatefulWidget {
   final Map<String, dynamic>? rutinaExistente;
@@ -40,6 +41,15 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
 
   Future<void> _guardarRutina() async {
     if (_formKey.currentState!.validate()) {
+      final usuarioId = await SessionManager.obtenerUsuarioId();
+      if (usuarioId == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Inicia sesión para guardar una rutina')),
+        );
+        return;
+      }
+
       final rutina = Rutina(
         nombre: _nombreController.text,
         descripcion: '',
@@ -52,6 +62,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
         metodo: '',
         favorita: false,
         fechaCreacion: DateTime.now().toIso8601String(),
+        usuarioId: usuarioId,
       );
 
       if (widget.rutinaId != null) {

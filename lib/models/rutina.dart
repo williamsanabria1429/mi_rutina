@@ -11,6 +11,7 @@ class Rutina {
   final String? metodo; // ej: Circuito, Superseries (para más adelante)
   final bool favorita;
   final String fechaCreacion;
+  final int? usuarioId;
 
   Rutina({
     this.id,
@@ -25,6 +26,7 @@ class Rutina {
     this.metodo,
     this.favorita = false,
     required this.fechaCreacion,
+    this.usuarioId,
   });
 
   // Convierte una Rutina a un Map, para poder guardarla en SQLite
@@ -42,6 +44,7 @@ class Rutina {
       'metodo': metodo,
       'favorita': favorita ? 1 : 0,
       'fechaCreacion': fechaCreacion,
+      'usuarioId': usuarioId,
     };
   }
 
@@ -60,6 +63,7 @@ class Rutina {
       metodo: map['metodo'] as String?,
       favorita: (map['favorita'] as int) == 1,
       fechaCreacion: map['fechaCreacion'] as String,
+      usuarioId: map['usuarioId'] as int?,
     );
   }
 }
