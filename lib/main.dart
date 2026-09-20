@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'theme/app_colors.dart';
 import 'screens/home_screen.dart';
+import 'db/database_helper.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final dbHelper = DatabaseHelper();
+  await dbHelper.database;
+  await dbHelper.cargarRutinasPreestablecidasSiVacio();
   runApp(const MiRutinaApp());
 }
 

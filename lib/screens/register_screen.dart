@@ -22,8 +22,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _preguntaSeguridadSeleccionada;
 
   static const List<String> _preguntasSeguridad = [
-    '¿Cuál es el nombre de la mascota que más amaste?',
-    '¿Cuál es el nombre de tu mejor amigo de la infancia?',
+    'Nombre de la mascota que mas amaste',
+    'Nombre de tu mejor amigo de infancia',
     '¿En qué ciudad naciste?',
     '¿Cuál es el segundo nombre de tu madre?',
     '¿Cuál es tu comida favorita?',
@@ -218,6 +218,7 @@ Widget _buildTextField({
   Widget _buildPreguntaSeguridadSelector() {
     return DropdownButtonFormField<String>(
       initialValue: _preguntaSeguridadSeleccionada,
+      isExpanded: true,
       dropdownColor: AppColors.card,
       style: const TextStyle(color: AppColors.textDark),
       icon: const Icon(Icons.arrow_drop_down, color: AppColors.textLight),

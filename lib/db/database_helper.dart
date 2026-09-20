@@ -20,7 +20,7 @@ class DatabaseHelper {
     final path = join(await getDatabasesPath(), 'mi_rutina.db');
     return await openDatabase(
       path,
-      version: 5,
+      version: 6,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE evaluaciones(
@@ -69,6 +69,26 @@ class DatabaseHelper {
             respuesta_seguridad TEXT
           )
         ''');
+        await db.execute('''
+          CREATE TABLE rutinas_preestablecidas(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            categoria TEXT NOT NULL,
+            nivel TEXT NOT NULL,
+            objetivo TEXT NOT NULL
+          )
+        ''');
+        await db.execute('''
+          CREATE TABLE ejercicios_preestablecidos(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            rutina_id INTEGER NOT NULL,
+            nombre TEXT NOT NULL,
+            series INTEGER NOT NULL,
+            repeticiones INTEGER NOT NULL,
+            descanso_segundos INTEGER NOT NULL,
+            FOREIGN KEY (rutina_id) REFERENCES rutinas_preestablecidas (id)
+          )
+        ''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 3) {
@@ -93,6 +113,28 @@ class DatabaseHelper {
           ''');
           await db.execute('''
             ALTER TABLE usuarios ADD COLUMN respuesta_seguridad TEXT
+          ''');
+        }
+        if (oldVersion < 6) {
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS rutinas_preestablecidas(
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              nombre TEXT NOT NULL,
+              categoria TEXT NOT NULL,
+              nivel TEXT NOT NULL,
+              objetivo TEXT NOT NULL
+            )
+          ''');
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS ejercicios_preestablecidos(
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              rutina_id INTEGER NOT NULL,
+              nombre TEXT NOT NULL,
+              series INTEGER NOT NULL,
+              repeticiones INTEGER NOT NULL,
+              descanso_segundos INTEGER NOT NULL,
+              FOREIGN KEY (rutina_id) REFERENCES rutinas_preestablecidas (id)
+            )
           ''');
         }
       },
@@ -251,5 +293,191 @@ Future<int> eliminarRutina(int id) async {
     final evaluaciones = await obtenerEvaluaciones();
     if (evaluaciones.isEmpty) return null;
     return evaluaciones.first;
+  }
+
+  Future<int> insertarRutinaPreestablecida(
+    String nombre,
+    String categoria,
+    String nivel,
+    String objetivo,
+  ) async {
+    final db = await database;
+    return await db.insert('rutinas_preestablecidas', {
+      'nombre': nombre,
+      'categoria': categoria,
+      'nivel': nivel,
+      'objetivo': objetivo,
+    });
+  }
+
+  Future<int> insertarEjercicioPreestablecido(
+    int rutinaId,
+    String nombre,
+    int series,
+    int repeticiones,
+    int descansoSegundos,
+  ) async {
+    final db = await database;
+    return await db.insert('ejercicios_preestablecidos', {
+      'rutina_id': rutinaId,
+      'nombre': nombre,
+      'series': series,
+      'repeticiones': repeticiones,
+      'descanso_segundos': descansoSegundos,
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> obtenerRutinasPreestablecidasPorCategoria(
+    String categoria,
+  ) async {
+    final db = await database;
+    return await db.query(
+      'rutinas_preestablecidas',
+      where: 'categoria = ?',
+      whereArgs: [categoria],
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> obtenerEjerciciosDeRutinaPreestablecida(
+    int rutinaId,
+  ) async {
+    final db = await database;
+    return await db.query(
+      'ejercicios_preestablecidos',
+      where: 'rutina_id = ?',
+      whereArgs: [rutinaId],
+    );
+  }
+
+  Future<void> cargarRutinasPreestablecidasSiVacio() async {
+    final db = await database;
+    final resultado = await db.rawQuery(
+      'SELECT COUNT(*) AS total FROM rutinas_preestablecidas',
+    );
+    final total = Sqflite.firstIntValue(resultado) ?? 0;
+    if (total != 0) return;
+
+    const rutinas = [
+      ['Flexiones de pecho', 'Plancha', 'Sentadillas', 'Jumping jacks'],
+      ['Flexiones inclinadas', 'Plancha lateral', 'Zancadas', 'Burpees'],
+      ['Flexiones diamante', 'Abdominales', 'Sentadilla búlgara', 'High knees'],
+      ['Fondos en silla', 'Elevación de piernas', 'Puente de glúteo', 'Jump squat'],
+      ['Superman', 'Mountain climbers', 'Elevación de talones', 'Plancha con toque de hombro'],
+      ['Flexiones de pecho', 'Abdominales', 'Zancadas', 'Burpees'],
+      ['Flexiones inclinadas', 'Elevación de piernas', 'Sentadilla búlgara', 'High knees'],
+      ['Flexiones diamante', 'Mountain climbers', 'Puente de glúteo', 'Jump squat'],
+      ['Fondos en silla', 'Plancha', 'Elevación de talones', 'Plancha con toque de hombro'],
+      ['Superman', 'Plancha lateral', 'Sentadillas', 'Jumping jacks'],
+      ['Flexiones de pecho', 'Mountain climbers', 'Elevación de talones', 'High knees'],
+      ['Flexiones inclinadas', 'Plancha', 'Puente de glúteo', 'Jump squat'],
+      ['Flexiones diamante', 'Plancha lateral', 'Sentadillas', 'Plancha con toque de hombro'],
+      ['Fondos en silla', 'Abdominales', 'Zancadas', 'Jumping jacks'],
+      ['Superman', 'Elevación de piernas', 'Sentadilla búlgara', 'Burpees'],
+      ['Flexiones de pecho', 'Plancha lateral', 'Puente de glúteo', 'Plancha con toque de hombro'],
+      ['Flexiones inclinadas', 'Abdominales', 'Sentadillas', 'Burpees'],
+      ['Flexiones diamante', 'Elevación de piernas', 'Zancadas', 'Jump squat'],
+      ['Fondos en silla', 'Mountain climbers', 'Sentadilla búlgara', 'Jumping jacks'],
+      ['Superman', 'Plancha', 'Elevación de talones', 'High knees'],
+    ];
+
+    for (var i = 0; i < rutinas.length; i++) {
+      final rutinaId = await insertarRutinaPreestablecida(
+        'Rutina ${i + 1}',
+        'Casa',
+        'Principiante',
+        'Resistencia',
+      );
+      for (final ejercicio in rutinas[i]) {
+        await insertarEjercicioPreestablecido(
+          rutinaId,
+          ejercicio,
+          3,
+          15,
+          45,
+        );
+      }
+    }
+
+    const rutinasGimnasio = [
+      ['Press plano', 'Crunch normal', 'Sentadilla libre', 'Cinta de correr'],
+      ['Remo con mancuerna', 'Flexión de oblicuos con mancuerna', 'Peso muerto', 'Bicicleta estática'],
+      ['Press militar con mancuerna', 'Plancha bocaabajo', 'Sentadilla tipo sumo', 'Escaladora'],
+      ['Pull over', 'Elevación de piernas en paralelas', 'Hiperextensión de cadera en máquina', 'Remo'],
+      ['Halón frontal al pecho', 'Elevación de piernas en banco declinado', 'Patada de glúteo en cuadrupedia', 'Elíptica'],
+      ['Halón trasnuca', 'Crunch con piernas en apoyo', 'Extensión de cadera en banco', 'Cinta de correr'],
+      ['Curl de bíceps con barra', 'Crunch piernas arriba', 'Patada atrás en banco', 'Bicicleta estática'],
+      ['Curl de bíceps con mancuerna', 'Crunch a 90 grados', 'Patada de rana boca abajo', 'Escaladora'],
+      ['Copa para tríceps', 'Crunch con polea alta', 'Step con mancuerna para glúteo', 'Remo'],
+      ['Push Down', 'Recogimientos', 'Elevación de pelvis para glúteo', 'Elíptica'],
+      ['Elevación frontal con barra', 'Abdominales en banco declinado', 'Decúbito supino pierna arriba para glúteo', 'Cinta de correr'],
+      ['Press plano', 'Submontañas', 'Prensa invertida', 'Bicicleta estática'],
+      ['Halón frontal al pecho', 'Flexión de oblicuos pierna en flexión', 'Buenos días', 'Escaladora'],
+      ['Halón trasnuca', 'Crunch lateral en ab slimmer', 'Patada atrás con agarre', 'Remo'],
+      ['Curl de bíceps con barra', 'Flexión lateral de torso piernas en flexión', 'Patada atrás con polea baja', 'Elíptica'],
+      ['Curl de bíceps con mancuerna', 'Flexión lateral de torso en colchoneta', 'Patada atrás con máquina', 'Cinta de correr'],
+      ['Copa para tríceps', 'Flexión lateral de torso con polea alta', 'Aducción de cadera en colchoneta', 'Bicicleta estática'],
+      ['Push Down', 'Flexión lateral de torso con polea baja', 'Aducción de cadera en cuadrupedia', 'Escaladora'],
+      ['Elevación frontal con barra', 'Giros de oblicuos en polea alta', 'Aductores con polea baja', 'Remo'],
+      ['Pull over', 'Flexión de oblicuos en banco en suspensión', 'Aductores en máquina', 'Elíptica'],
+    ];
+
+    for (var i = 0; i < rutinasGimnasio.length; i++) {
+      final rutinaId = await insertarRutinaPreestablecida(
+        'Rutina ${i + 1}',
+        'Gimnasio',
+        'Principiante',
+        'Hipertrofia',
+      );
+      for (final ejercicio in rutinasGimnasio[i]) {
+        await insertarEjercicioPreestablecido(
+          rutinaId,
+          ejercicio,
+          4,
+          10,
+          75,
+        );
+      }
+    }
+
+    const rutinasParque = [
+      ['Dominadas', 'Elevación de piernas colgado', 'Sentadillas con salto sobre banco', 'Burpees'],
+      ['Dominadas supinas', 'Plancha', 'Zancadas caminando', 'Mountain climbers'],
+      ['Fondos en paralelas', 'Rodillas al pecho colgado', 'Step-up en banco', 'Skipping'],
+      ['Remo australiano', 'Plancha lateral', 'Sentadilla búlgara', 'Jumping jacks'],
+      ['Flexiones manos elevadas en banco', 'Giros rusos', 'Puente de glúteo', 'Sprints cortos'],
+      ['Dominadas', 'Plancha', 'Step-up en banco', 'Jumping jacks'],
+      ['Dominadas supinas', 'Rodillas al pecho colgado', 'Sentadilla búlgara', 'Sprints cortos'],
+      ['Fondos en paralelas', 'Plancha lateral', 'Puente de glúteo', 'Burpees'],
+      ['Remo australiano', 'Giros rusos', 'Sentadillas con salto sobre banco', 'Mountain climbers'],
+      ['Flexiones manos elevadas en banco', 'Elevación de piernas colgado', 'Zancadas caminando', 'Skipping'],
+      ['Dominadas', 'Rodillas al pecho colgado', 'Puente de glúteo', 'Mountain climbers'],
+      ['Dominadas supinas', 'Plancha lateral', 'Sentadillas con salto sobre banco', 'Skipping'],
+      ['Fondos en paralelas', 'Giros rusos', 'Zancadas caminando', 'Jumping jacks'],
+      ['Remo australiano', 'Elevación de piernas colgado', 'Step-up en banco', 'Sprints cortos'],
+      ['Flexiones manos elevadas en banco', 'Plancha', 'Sentadilla búlgara', 'Burpees'],
+      ['Dominadas', 'Plancha lateral', 'Zancadas caminando', 'Sprints cortos'],
+      ['Dominadas supinas', 'Giros rusos', 'Step-up en banco', 'Burpees'],
+      ['Fondos en paralelas', 'Elevación de piernas colgado', 'Sentadilla búlgara', 'Mountain climbers'],
+      ['Remo australiano', 'Plancha', 'Puente de glúteo', 'Skipping'],
+      ['Flexiones manos elevadas en banco', 'Rodillas al pecho colgado', 'Sentadillas con salto sobre banco', 'Jumping jacks'],
+    ];
+
+    for (var i = 0; i < rutinasParque.length; i++) {
+      final rutinaId = await insertarRutinaPreestablecida(
+        'Rutina ${i + 1}',
+        'Parque',
+        'Principiante',
+        'Fuerza funcional',
+      );
+      for (final ejercicio in rutinasParque[i]) {
+        await insertarEjercicioPreestablecido(
+          rutinaId,
+          ejercicio,
+          3,
+          15,
+          90,
+        );
+      }
+    }
   }
 }

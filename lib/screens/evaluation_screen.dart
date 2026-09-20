@@ -74,11 +74,6 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
   }
 
   void _finish() async {
-    final data = {
-      ...Map.fromEntries(_values.entries),
-      'condicionesMedicas': _selectedConditions.toList(),
-      'imc': _imc,
-    };
     if (widget.evaluacionId != null) {
   await DatabaseHelper().actualizarEvaluacion(
     widget.evaluacionId!,
