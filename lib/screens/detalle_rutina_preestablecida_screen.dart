@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../db/database_helper.dart';
 import '../theme/app_colors.dart';
 import '../utils/imagen_ejercicio_helper.dart';
+import 'cronometro_ejercicio_screen.dart';
 import 'imagen_ejercicio_fullscreen_screen.dart';
 
 class DetalleRutinaPreestablecidaScreen extends StatefulWidget {
@@ -143,26 +144,53 @@ class _DetalleRutinaPreestablecidaScreenState
                         ),
                         const SizedBox(width: 16),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                ejercicio['nombre'] as String,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => CronometroEjercicioScreen(
+                                  nombreEjercicio:
+                                      ejercicio['nombre'] as String,
+                                  descansoRecomendadoSegundos: esCardioMaquina
+                                      ? null
+                                      : ejercicio['descanso_segundos'] as int?,
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                textoSeriesRepeticiones,
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 13,
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        ejercicio['nombre'] as String,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        textoSeriesRepeticiones,
+                                        style: const TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 8),
+                                const Icon(
+                                  Icons.timer_outlined,
+                                  color: AppColors.accent,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
