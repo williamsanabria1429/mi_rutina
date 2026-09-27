@@ -20,7 +20,7 @@ class DatabaseHelper {
     final path = join(await getDatabasesPath(), 'mi_rutina.db');
     return await openDatabase(
       path,
-      version: 6,
+      version: 8,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE evaluaciones(
@@ -134,6 +134,36 @@ class DatabaseHelper {
               repeticiones INTEGER NOT NULL,
               descanso_segundos INTEGER NOT NULL,
               FOREIGN KEY (rutina_id) REFERENCES rutinas_preestablecidas (id)
+            )
+          ''');
+        }
+        if (oldVersion < 7) {
+          await db.execute('''
+            UPDATE ejercicios_preestablecidos
+            SET series = 1, repeticiones = 45, descanso_segundos = 0
+            WHERE nombre IN (
+              'Cinta de correr', 'Elíptica', 'Bicicleta estática', 'Escaladora', 'Remo'
+            )
+            AND rutina_id IN (
+              SELECT id FROM rutinas_preestablecidas WHERE categoria = 'Gimnasio'
+            )
+          ''');
+        }
+        if (oldVersion < 8) {
+          await db.execute('''
+            UPDATE ejercicios_preestablecidos
+            SET repeticiones = 60
+            WHERE nombre IN ('Plancha', 'Plancha lateral')
+            AND rutina_id IN (
+              SELECT id FROM rutinas_preestablecidas WHERE categoria IN ('Casa', 'Parque')
+            )
+          ''');
+          await db.execute('''
+            UPDATE ejercicios_preestablecidos
+            SET repeticiones = 20
+            WHERE nombre = 'Plancha bocaabajo'
+            AND rutina_id IN (
+              SELECT id FROM rutinas_preestablecidas WHERE categoria = 'Gimnasio'
             )
           ''');
         }
@@ -388,11 +418,13 @@ Future<int> eliminarRutina(int id) async {
         'Resistencia',
       );
       for (final ejercicio in rutinas[i]) {
+        final esIsometrico =
+            ejercicio == 'Plancha' || ejercicio == 'Plancha lateral';
         await insertarEjercicioPreestablecido(
           rutinaId,
           ejercicio,
           3,
-          15,
+          esIsometrico ? 60 : 15,
           45,
         );
       }
@@ -421,6 +453,14 @@ Future<int> eliminarRutina(int id) async {
       ['Pull over', 'Flexión de oblicuos en banco en suspensión', 'Aductores en máquina', 'Elíptica'],
     ];
 
+    const cardioMaquina = [
+      'Cinta de correr',
+      'Elíptica',
+      'Bicicleta estática',
+      'Escaladora',
+      'Remo',
+    ];
+
     for (var i = 0; i < rutinasGimnasio.length; i++) {
       final rutinaId = await insertarRutinaPreestablecida(
         'Rutina ${i + 1}',
@@ -429,13 +469,23 @@ Future<int> eliminarRutina(int id) async {
         'Hipertrofia',
       );
       for (final ejercicio in rutinasGimnasio[i]) {
-        await insertarEjercicioPreestablecido(
-          rutinaId,
-          ejercicio,
-          4,
-          10,
-          75,
-        );
+        if (cardioMaquina.contains(ejercicio)) {
+          await insertarEjercicioPreestablecido(
+            rutinaId,
+            ejercicio,
+            1,
+            45,
+            0,
+          );
+        } else {
+          await insertarEjercicioPreestablecido(
+            rutinaId,
+            ejercicio,
+            4,
+            ejercicio == 'Plancha bocaabajo' ? 20 : 10,
+            75,
+          );
+        }
       }
     }
 
@@ -470,11 +520,13 @@ Future<int> eliminarRutina(int id) async {
         'Fuerza funcional',
       );
       for (final ejercicio in rutinasParque[i]) {
+        final esIsometrico =
+            ejercicio == 'Plancha' || ejercicio == 'Plancha lateral';
         await insertarEjercicioPreestablecido(
           rutinaId,
           ejercicio,
           3,
-          15,
+          esIsometrico ? 60 : 15,
           90,
         );
       }

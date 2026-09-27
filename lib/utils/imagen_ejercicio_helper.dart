@@ -1,6 +1,9 @@
 import 'package:flutter/services.dart';
 
-const String _carpetaEjerciciosGimnasio = 'assets/ejercicios_gimnasio/';
+const List<String> _carpetasEjercicios = [
+  'assets/ejercicios_gimnasio/',
+  'assets/ejercicios_casa_parque/',
+];
 
 String _normalizar(String texto) {
   const conTilde = 'áéíóúÁÉÍÓÚñÑüÜ';
@@ -33,7 +36,9 @@ Future<List<String>> _obtenerManifest() async {
   ) {
     final assets = manifest
         .listAssets()
-        .where((ruta) => ruta.startsWith(_carpetaEjerciciosGimnasio))
+        .where(
+          (ruta) => _carpetasEjercicios.any((carpeta) => ruta.startsWith(carpeta)),
+        )
         .toList();
     _manifestCache = assets;
     return assets;
@@ -48,7 +53,7 @@ Future<String?> obtenerRutaImagenEjercicio(String nombreEjercicio) async {
   final nombreBuscado = _normalizar(nombreEjercicio);
 
   for (final rutaAsset in assets) {
-    final nombreArchivo = rutaAsset.substring(_carpetaEjerciciosGimnasio.length);
+    final nombreArchivo = rutaAsset.substring(rutaAsset.lastIndexOf('/') + 1);
     final puntoExtension = nombreArchivo.lastIndexOf('.');
     final nombreSinExtension = puntoExtension == -1
         ? nombreArchivo

@@ -69,6 +69,30 @@ class _DetalleRutinaPreestablecidaScreenState
                 final ejercicioId = ejercicio['id'] as int;
                 final rutaImagen = _imagenesPorEjercicio[ejercicioId];
 
+                const cardioMaquina = [
+                  'Cinta de correr',
+                  'Elíptica',
+                  'Bicicleta estática',
+                  'Escaladora',
+                  'Remo',
+                ];
+                const isometricos = [
+                  'Plancha',
+                  'Plancha lateral',
+                  'Plancha bocaabajo',
+                ];
+                final esCardioMaquina =
+                    cardioMaquina.contains(ejercicio['nombre'] as String);
+                final esIsometrico =
+                    isometricos.contains(ejercicio['nombre'] as String);
+                final textoSeriesRepeticiones = esCardioMaquina
+                    ? '${ejercicio['repeticiones']} min'
+                    : esIsometrico
+                        ? '${ejercicio['series']} series · ${ejercicio['repeticiones']} s · '
+                            '${ejercicio['descanso_segundos']}s descanso'
+                        : '${ejercicio['series']} series · ${ejercicio['repeticiones']} repeticiones · '
+                            '${ejercicio['descanso_segundos']}s descanso';
+
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Container(
@@ -132,8 +156,7 @@ class _DetalleRutinaPreestablecidaScreenState
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                '${ejercicio['series']} series · ${ejercicio['repeticiones']} repeticiones · '
-                                '${ejercicio['descanso_segundos']}s descanso',
+                                textoSeriesRepeticiones,
                                 style: const TextStyle(
                                   color: Colors.white70,
                                   fontSize: 13,
