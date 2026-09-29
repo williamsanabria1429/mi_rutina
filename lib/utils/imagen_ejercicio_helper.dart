@@ -68,3 +68,37 @@ Future<String?> obtenerRutaImagenEjercicio(String nombreEjercicio) async {
 
   return null;
 }
+
+class EjercicioConImagen {
+  final String nombre;
+  final String rutaImagen;
+  final bool esGimnasio;
+
+  const EjercicioConImagen({
+    required this.nombre,
+    required this.rutaImagen,
+    required this.esGimnasio,
+  });
+
+  bool coincideCon(String busqueda) {
+    return _normalizar(nombre).contains(_normalizar(busqueda));
+  }
+}
+
+Future<List<EjercicioConImagen>> obtenerListaEjercicios() async {
+  final assets = List<String>.from(await _obtenerManifest())..sort();
+
+  return assets.map((rutaAsset) {
+    final nombreArchivo = rutaAsset.substring(rutaAsset.lastIndexOf('/') + 1);
+    final puntoExtension = nombreArchivo.lastIndexOf('.');
+    final nombreSinExtension = puntoExtension == -1
+        ? nombreArchivo
+        : nombreArchivo.substring(0, puntoExtension);
+
+    return EjercicioConImagen(
+      nombre: _quitarNumeroInicial(nombreSinExtension),
+      rutaImagen: rutaAsset,
+      esGimnasio: rutaAsset.startsWith(_carpetasEjercicios[0]),
+    );
+  }).toList();
+}
