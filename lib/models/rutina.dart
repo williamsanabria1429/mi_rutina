@@ -2,7 +2,7 @@ class Rutina {
   final int? id;
   final String nombre;
   final String? descripcion;
-  final String tipoEntrenamiento; // Gimnasio, Casa, Calistenia
+  final String tipoEntrenamiento; // Gimnasio, Casa, Parque
   final String? subcategoria; // ej: Peso libre, Máquinas (para más adelante)
   final String? objetivo; // ej: Fuerza, Hipertrofia, Pérdida de grasa
   final String? zonaCorporal; // ej: Piernas, Espalda (para más adelante)

@@ -20,7 +20,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
   String _tipoEntrenamiento = 'Gimnasio';
   String _objetivo = 'Fuerza';
 
-  final List<String> _tipos = ['Gimnasio', 'Casa', 'Calistenia'];
+  final List<String> _tipos = ['Gimnasio', 'Casa', 'Parque'];
   final List<String> _objetivos = [
     'Fuerza',
     'Hipertrofia',

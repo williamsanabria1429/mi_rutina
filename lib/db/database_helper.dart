@@ -20,7 +20,7 @@ class DatabaseHelper {
     final path = join(await getDatabasesPath(), 'mi_rutina.db');
     return await openDatabase(
       path,
-      version: 8,
+      version: 9,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE evaluaciones(
@@ -165,6 +165,13 @@ class DatabaseHelper {
             AND rutina_id IN (
               SELECT id FROM rutinas_preestablecidas WHERE categoria = 'Gimnasio'
             )
+          ''');
+        }
+        if (oldVersion < 9) {
+          await db.execute('''
+            UPDATE rutinas
+            SET tipoEntrenamiento = 'Parque'
+            WHERE tipoEntrenamiento = 'Calistenia'
           ''');
         }
       },
