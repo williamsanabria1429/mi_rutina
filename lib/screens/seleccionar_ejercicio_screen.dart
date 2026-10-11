@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../data/segmentos_ejercicios.dart';
 import '../theme/app_colors.dart';
 import '../utils/imagen_ejercicio_helper.dart';
 
@@ -82,12 +83,27 @@ class _SeleccionarEjercicioScreenState
     );
   }
 
+  /// Título del segmento y sus ejercicios, o nada si no le queda ninguno.
+  List<Widget> _seccionSegmento(
+    String segmento,
+    List<EjercicioConImagen> ejercicios,
+  ) {
+    final delSegmento = ejercicios.where((e) => e.segmento == segmento);
+    if (delSegmento.isEmpty) return [];
+
+    return [
+      _tituloSeccion(segmento),
+      ...delSegmento.map(_itemEjercicio),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final filtrados =
         _ejercicios.where((e) => e.coincideCon(_busqueda)).toList();
-    final gimnasio = filtrados.where((e) => e.esGimnasio).toList();
-    final casaParque = filtrados.where((e) => !e.esGimnasio).toList();
+    // "Otros" va al final y, como cualquier segmento, solo aparece si tiene
+    // ejercicios.
+    final segmentos = [...segmentosMusculares, segmentoOtros];
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -125,14 +141,8 @@ class _SeleccionarEjercicioScreenState
                   child: ListView(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     children: [
-                      if (gimnasio.isNotEmpty) ...[
-                        _tituloSeccion('Gimnasio'),
-                        ...gimnasio.map(_itemEjercicio),
-                      ],
-                      if (casaParque.isNotEmpty) ...[
-                        _tituloSeccion('Casa / Parque'),
-                        ...casaParque.map(_itemEjercicio),
-                      ],
+                      for (final segmento in segmentos)
+                        ..._seccionSegmento(segmento, filtrados),
                       if (filtrados.isEmpty)
                         const Padding(
                           padding: EdgeInsets.symmetric(vertical: 24),

@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import '../data/segmentos_ejercicios.dart';
 
 const List<String> _carpetasEjercicios = [
   'assets/ejercicios_gimnasio/',
@@ -69,15 +70,30 @@ Future<String?> obtenerRutaImagenEjercicio(String nombreEjercicio) async {
   return null;
 }
 
+/// [segmentoPorEjercicio] con las claves normalizadas, para que tildes y
+/// mayúsculas no impidan encontrar un ejercicio.
+final Map<String, String> _segmentoPorNombreNormalizado = {
+  for (final entrada in segmentoPorEjercicio.entries)
+    _normalizar(entrada.key): entrada.value,
+};
+
+/// Segmento muscular de un ejercicio, o [segmentoOtros] si no está en el mapa.
+String obtenerSegmentoEjercicio(String nombreEjercicio) {
+  return _segmentoPorNombreNormalizado[_normalizar(nombreEjercicio)] ??
+      segmentoOtros;
+}
+
 class EjercicioConImagen {
   final String nombre;
   final String rutaImagen;
   final bool esGimnasio;
+  final String segmento;
 
   const EjercicioConImagen({
     required this.nombre,
     required this.rutaImagen,
     required this.esGimnasio,
+    required this.segmento,
   });
 
   bool coincideCon(String busqueda) {
@@ -95,10 +111,13 @@ Future<List<EjercicioConImagen>> obtenerListaEjercicios() async {
         ? nombreArchivo
         : nombreArchivo.substring(0, puntoExtension);
 
+    final nombre = _quitarNumeroInicial(nombreSinExtension);
+
     return EjercicioConImagen(
-      nombre: _quitarNumeroInicial(nombreSinExtension),
+      nombre: nombre,
       rutaImagen: rutaAsset,
       esGimnasio: rutaAsset.startsWith(_carpetasEjercicios[0]),
+      segmento: obtenerSegmentoEjercicio(nombre),
     );
   }).toList();
 }
