@@ -129,6 +129,64 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ),
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Material(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  shape: const CircleBorder(
+                    side: BorderSide(color: AppColors.accent, width: 1.5),
+                  ),
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: () => _mostrarTutorial(context),
+                    child: const SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: Center(
+                        child: Text(
+                          '?',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.accent,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _mostrarTutorial(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.card,
+        title: const Text(
+          'Tutorial',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'Muy pronto: video tutorial de cómo usar la app',
+          style: TextStyle(color: AppColors.textLight),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text(
+              'Cerrar',
+              style: TextStyle(color: AppColors.accent),
+            ),
+          ),
         ],
       ),
     );
