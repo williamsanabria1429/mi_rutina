@@ -34,23 +34,22 @@ class _RutinasPreestablecidasScreenState
         widget.categoria,
       );
 
-      if (widget.categoria == 'Gimnasio') {
-        for (final rutina in rutinas) {
-          final rutinaId = rutina['id'] as int;
-          final ejercicios = await dbHelper
-              .obtenerEjerciciosDeRutinaPreestablecida(rutinaId);
-          if (ejercicios.isNotEmpty) {
-            final nombreEjercicio = ejercicios.first['nombre'] as String;
-            try {
-              _imagenesPorRutina[rutinaId] =
-                  await obtenerRutaImagenEjercicio(nombreEjercicio);
-            } catch (e) {
-              print('Error cargando imagen de ejercicio: $e');
-              _imagenesPorRutina[rutinaId] = null;
-            }
-          } else {
+      for (final rutina in rutinas) {
+        final rutinaId = rutina['id'] as int;
+        final ejercicios = List<Map<String, dynamic>>.from(
+          await dbHelper.obtenerEjerciciosDeRutinaPreestablecida(rutinaId),
+        )..sort((a, b) => (a['id'] as int).compareTo(b['id'] as int));
+        if (ejercicios.isNotEmpty) {
+          final nombreEjercicio = ejercicios.first['nombre'] as String;
+          try {
+            _imagenesPorRutina[rutinaId] =
+                await obtenerRutaImagenEjercicio(nombreEjercicio);
+          } catch (e) {
+            print('Error cargando imagen de ejercicio: $e');
             _imagenesPorRutina[rutinaId] = null;
           }
+        } else {
+          _imagenesPorRutina[rutinaId] = null;
         }
       }
     } finally {
